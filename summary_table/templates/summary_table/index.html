@@ -1,0 +1,48 @@
+
+<table id="summary_table" style="border-collapse: collapse; border-spacing: 0;">
+    <thead>
+        <tr>
+            <th>
+                filename
+            </th>
+        {% for pn in parameter_names %}
+            <th>
+                {{ pn.name }}
+            </th>
+        {% endfor %}
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th>
+                filename
+            </th>
+        {% for pn in parameter_names %}
+            <th>
+                {{ pn.name }}
+            </th>
+        {% endfor %}
+        </tr>
+    </tfoot>
+    <tbody>
+{% for row in grid %}
+    <tr>
+    {% for cell in row %}
+        <td>{{ cell }}</td>
+    {% endfor %}
+    </tr>
+{% endfor %}
+</tbody>
+</table>
+
+<script src="http://datatables.net/download/build/jquery.dataTables.js"></script>
+<script src="http://datatables.net/extras/thirdparty/ColReorderWithResize/ColReorderWithResize.js"></script>
+<script src="http://datatables.net/release-datatables/extras/ColVis/media/js/ColVis.js"></script>
+<script>
+$('#summary_table').dataTable(
+{
+    bJQueryUI: true,
+    sDom: 'C<"clear">Rlfrtip'
+    }
+);
+</script>
