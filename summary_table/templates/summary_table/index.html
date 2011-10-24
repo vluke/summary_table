@@ -1,5 +1,12 @@
 
-<table id="summary_table" style="border-collapse: collapse; border-spacing: 0;">
+<style>
+th {
+    border-width: 5px;
+    padding: 5px;
+    margin: 5px;
+}
+</style>
+<table id="summary_table" style="border-collapse: collapse; border-spacing: 5px;">
     <thead>
         <tr>
             <th>
@@ -36,13 +43,12 @@
 </table>
 
 <script src="http://datatables.net/download/build/jquery.dataTables.js"></script>
-<script src="http://datatables.net/extras/thirdparty/ColReorderWithResize/ColReorderWithResize.js"></script>
 <script src="http://datatables.net/release-datatables/extras/ColVis/media/js/ColVis.js"></script>
+<script src="http://datatables.net/extras/thirdparty/ColReorderWithResize/ColReorderWithResize.js"></script>
 <script>
-$('#summary_table').dataTable(
-{
+$('#summary_table').dataTable({
     bJQueryUI: true,
-    sDom: 'C<"clear">Rlfrtip'
-    }
-);
+    sDom: 'C<"clear"><"H"lfr>t<"F"ip>R'
+    //sDom: 'C<"clear">Rlfrtip'
+});
 </script>
