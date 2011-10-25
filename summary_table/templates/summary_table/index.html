@@ -5,6 +5,41 @@ th {
     padding: 5px;
     margin: 5px;
 }
+.dataTables_filter {
+    float:right;
+}
+.DTTT_container.ui-buttonset {
+    float:left;
+}
+.dataTables_length {
+    float:left;
+}
+.ColVis.TableTools {
+    float:left;
+}
+
+#summary_table tr.odd {
+    background-color: #E0E3E6;
+}
+#summary_table tr.even {
+    background-color: #D0D3D6;
+}
+.dataTables_wrapper .ui-toolbar {
+      padding: 5px;
+  }
+#summary_table td{
+    padding: 5px;
+}
+#summary_table_wrapper .fg-button, #summary_table_wrapper .ui-button {
+    padding: 3px;
+}
+/*.ColVis_MasterButton {  */
+/*    float:right;*/
+/*}*/
+.dataTables_length{
+    float: right;
+    margin-right: 20px;
+}
 </style>
 <table id="summary_table" style="border-collapse: collapse; border-spacing: 5px;">
     <thead>
@@ -19,36 +54,59 @@ th {
         {% endfor %}
         </tr>
     </thead>
-    <tfoot>
-        <tr>
-            <th>
-                filename
-            </th>
-        {% for pn in parameter_names %}
-            <th>
-                {{ pn.name }}
-            </th>
-        {% endfor %}
-        </tr>
-    </tfoot>
     <tbody>
-{% for row in grid %}
-    <tr>
-    {% for cell in row %}
-        <td>{{ cell }}</td>
-    {% endfor %}
-    </tr>
-{% endfor %}
 </tbody>
 </table>
 
 <script src="http://datatables.net/download/build/jquery.dataTables.js"></script>
 <script src="http://datatables.net/release-datatables/extras/ColVis/media/js/ColVis.js"></script>
-<script src="http://datatables.net/extras/thirdparty/ColReorderWithResize/ColReorderWithResize.js"></script>
+<script src="http://datatables.net/release-datatables/extras/ColReorder/media/js/ColReorder.js"></script>
+<script src="http://datatables.net/release-datatables/extras/TableTools/media/js/TableTools.min.js"></script>
+<!--<script
+    src="http://datatables.net/extras/thirdparty/ColReorderWithResize/ColReorderWithResize.js"></script>
+-->
+
 <script>
+// sDom:  http://datatables.net/ref
+//This initialisation variable allows you to specify exactly where in
+// the DOM you want DataTables to inject the various controls it adds to
+// the page (for example you might want the pagination controls at the top
+// of the table). DIV elements (with or without a custom class) can also
+// be added to aid styling. The follow syntax is used:
+//
+//    The following options are allowed:
+//        'l' - Length changing
+//        'f' - Filtering input
+//        't' - The table!
+//        'i' - Information
+//        'p' - Pagination
+//        'r' - pRocessing
+//    The following constants are allowed:
+//        'H' - jQueryUI theme "header" classes ('fg-toolbar ui-widget-header ui-corner-tl ui-corner-tr ui-helper-clearfix')
+//        'F' - jQueryUI theme "footer" classes ('fg-toolbar ui-widget-header ui-corner-bl ui-corner-br ui-helper-clearfix')
+//    The following syntax is expected:
+//        '<' and '>' - div elements
+//        '<"class" and '>' - div with a class
+//        '<"#id" and '>' - div with an ID
+//    Examples:
+//        '<"wrapper"flipt>', '<lf<t>ip>'
+
 $('#summary_table').dataTable({
     bJQueryUI: true,
-    sDom: 'C<"clear"><"H"lfr>t<"F"ip>R'
-    //sDom: 'C<"clear">Rlfrtip'
+    sScrollX: "100%",
+    //"sScrollXInner": "110%",
+    bScrollCollapse: true,
+    oTableTools: {
+        aButtons: [{
+            sExtends: 'collection',
+            sButtonText: 'save',
+            aButtons: ['copy', 'csv', 'pdf']
+        }],
+        sSwfPath: "http://datatables.net/release-datatables/extras/TableTools/media/swf/copy_cvs_xls_pdf.swf"
+    },
+    bServerSide: true,
+    sAjaxSource: '{% url tardis.apps.summary_table.views.table experiment.id %}',
+    sPaginationType: 'full_numbers',
+    sDom: 'R<"H"TCrfl>t<"F"ip>'
 });
 </script>
