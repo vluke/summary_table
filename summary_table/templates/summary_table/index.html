@@ -33,9 +33,6 @@ th {
 #summary_table_wrapper .fg-button, #summary_table_wrapper .ui-button {
     padding: 3px;
 }
-/*.ColVis_MasterButton {  */
-/*    float:right;*/
-/*}*/
 .dataTables_length{
     float: right;
     margin-right: 20px;
@@ -43,19 +40,9 @@ th {
 </style>
 <table id="summary_table" style="border-collapse: collapse; border-spacing: 5px;">
     <thead>
-        <tr>
-            <th>
-                filename
-            </th>
-        {% for pn in parameter_names %}
-            <th>
-                {{ pn.name }}
-            </th>
-        {% endfor %}
-        </tr>
     </thead>
     <tbody>
-</tbody>
+    </tbody>
 </table>
 
 <script src="http://datatables.net/download/build/jquery.dataTables.js"></script>
@@ -92,6 +79,7 @@ th {
 //        '<"wrapper"flipt>', '<lf<t>ip>'
 
 $('#summary_table').dataTable({
+    aoColumns: {{joined|safe}},
     bJQueryUI: true,
     sScrollX: "100%",
     //"sScrollXInner": "110%",
