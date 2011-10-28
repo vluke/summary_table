@@ -1,4 +1,3 @@
-
 <style>
 th {
     border-width: 5px;
@@ -38,6 +37,9 @@ th {
     margin-right: 20px;
 }
 </style>
+{% if show_popout_link %}
+    <a href="{% url tardis.apps.summary_table.views.full_page experiment.id %}" target="_blank">Pop out table </a>
+{% endif %}
 <table id="summary_table" style="border-collapse: collapse; border-spacing: 5px;">
     <thead>
     </thead>
@@ -45,13 +47,6 @@ th {
     </tbody>
 </table>
 
-<script src="http://datatables.net/download/build/jquery.dataTables.js"></script>
-<script src="http://datatables.net/release-datatables/extras/ColVis/media/js/ColVis.js"></script>
-<script src="http://datatables.net/release-datatables/extras/ColReorder/media/js/ColReorder.js"></script>
-<script src="http://datatables.net/release-datatables/extras/TableTools/media/js/TableTools.min.js"></script>
-<!--<script
-    src="http://datatables.net/extras/thirdparty/ColReorderWithResize/ColReorderWithResize.js"></script>
--->
 
 <script>
 // sDom:  http://datatables.net/ref
@@ -92,6 +87,16 @@ $('#summary_table').dataTable({
         }],
         sSwfPath: "http://datatables.net/release-datatables/extras/TableTools/media/swf/copy_cvs_xls_pdf.swf"
     },
+    oLanguage: {
+        sLengthMenu: 'Display <select>'+
+            '<option value="10">10</option>'+
+            '<option value="25">25</option>'+
+            '<option value="50">50</option>'+
+            '<option value="100">100</option>'+
+            '</select> records'
+    },
+    bStateSave: true,
+    bProcessing: true,
     bServerSide: true,
     sAjaxSource: '{% url tardis.apps.summary_table.views.table experiment.id %}',
     sPaginationType: 'full_numbers',

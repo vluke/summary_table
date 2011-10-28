@@ -21,6 +21,11 @@ logger = logging.getLogger(__name__)
 @authz.experiment_access_required
 def index(request, experiment_id):
     url = 'summary_table/index.html'
+    context = _context(experiment_id)
+    context['show_popout_link'] = True
+    return HttpResponse(render_response_index(request, url, context))
+
+def _context(experiment_id):
     c = Context()
     experiment = Experiment.objects.get(pk=experiment_id)
 
@@ -32,15 +37,21 @@ def index(request, experiment_id):
         descs.append({'mDataProp': str(x.id), 'sTitle': x.name})
     c['joined'] = json.dumps(descs)
     c['experiment'] = experiment
+    return c
 
-    return HttpResponse(render_response_index(request, url, c))
+
+@authz.experiment_access_required
+def full_page(request, experiment_id):
+    url = 'summary_table/full_page.html'
+    context = _context(experiment_id)
+    return HttpResponse(render_response_index(request, url, context))
+
 
 @authz.experiment_access_required
 def table(request, experiment_id):
     # http://datatables.net/usage/server-side
     logger.debug(request.GET)
-    logger.debug(request.GET['sColumns'])
-    if not int(request.GET['iSortingCols']) == 1:
+    if int(request.GET['iSortingCols']) != 1:
         raise Exception('this should not happen')
     sort_col_index = request.GET['iSortCol_0']
     sort_col_name = request.GET['mDataProp_' + sort_col_index]
@@ -61,40 +72,29 @@ def table(request, experiment_id):
         datafiles = datafiles.order_by('filename')
         post_filter = True
 
-    limit = int(request.GET['iDisplayLength'])
-    offset = int(request.GET['iDisplayStart'])
-
     filter = request.GET['sSearch']
-
     filtered_datafiles = _filter(datafiles, filter)
 
-
-    pndict = dict([[pn.id, pn] for pn in parameter_names])
-    pn_ids = [x for x in pndict.keys()]
-
+    limit = int(request.GET['iDisplayLength'])
+    offset = int(request.GET['iDisplayStart'])
     dfs = [(x.id, x.filename) for x in filtered_datafiles[offset:offset+limit]]
     df_ids = [x[0] for x in dfs]
-    dfdict = dict(dfs)
 
-    name_ids = [pn.id for pn in parameter_names]
+    params_by_file = _params_by_file(df_ids, parameter_names)
 
-    dfps = DatafileParameter.objects.filter(parameterset__dataset_file__in=df_ids, name__in=name_ids).values('parameterset__dataset_file__id', 'name__id', 'numerical_value', 'datetime_value', 'string_value')
+    rows = _get_rows(dfs, parameter_names, params_by_file, sort_desc, post_filter, sort_col_name)
 
-    params_by_file = {}
-    for dfp in dfps:
-        f_id = dfp['parameterset__dataset_file__id']
-        n_id = dfp['name__id']
-        if f_id not in params_by_file:
-            params_by_file[f_id] = {}
+    resp = {}
+    resp['sEcho'] = int(request.GET['sEcho'])
+    resp['aaData'] = rows
+    resp['iTotalRecords'] = datafiles.count()
+    resp['iTotalDisplayRecords'] = filtered_datafiles.count()
+    return HttpResponse(json.dumps(resp), mimetype='application/json')
 
-        dfps_by_name = params_by_file[f_id]
 
-        if n_id not in dfps_by_name:
-            dfps_by_name[n_id] = []
-
-        dfp_vals = {'datetime_value': dfp['datetime_value'], 'numerical_value': dfp['numerical_value'], 'string_value': dfp['string_value'] }
-        dfps_by_name[n_id].append(dfp)
-
+def _get_rows(dfs, parameter_names, params_by_file, sort_desc, post_filter, sort_col_name):
+    pndict = dict([[pn.id, pn] for pn in parameter_names])
+    pn_ids = [x for x in pndict.keys()]
     rows = []
     for dft in dfs:
         df_id = dft[0]
@@ -127,36 +127,32 @@ def table(request, experiment_id):
                         row['sortable'] = 0
         rows.append(row)
 
-#    for df in filtered_datafiles[offset:offset+limit]:
-#        row = {}
-#        row['filename'] = df.filename
-#        for pn in parameter_names:
-#            params = DatafileParameter.objects.filter(parameterset__dataset_file=df, name=pn)
-#            row[str(pn.id)] = ','.join([param.get() for param in params])
-#            if post_filter and sort_col_name == str(pn.id):
-#                if len(params) == 0:
-#                    row['sortable'] = 0
-#                else:
-#                    if pn.isString() or pn.isLongString():
-#                        row['sortable'] = sorted([x.string_value for x in params])[0]
-#                    elif pn.isNumeric():
-#                        row['sortable'] = sorted([x.numerical_value for x in params])[0]
-#                    elif pn.isDateTime():
-#                        row['sortable'] = sorted([x.datetime_value for x in params])[0]
-#                    else:
-#                        row['sortable'] = 0
-#        rows.append(row)
     if post_filter:
         rows = sorted(rows, key=lambda x: x['sortable'], reverse=sort_desc)
         for row in rows:
             del row['sortable']
+    return rows
 
-    resp = {}
-    resp['sEcho'] = int(request.GET['sEcho'])
-    resp['aaData'] = rows
-    resp['iTotalRecords'] = datafiles.count()
-    resp['iTotalDisplayRecords'] = filtered_datafiles.count()
-    return HttpResponse(json.dumps(resp), mimetype='application/json')
+
+def _params_by_file(df_ids, parameter_names):
+    name_ids = [pn.id for pn in parameter_names]
+    params_by_file = {}
+    dfps = DatafileParameter.objects.filter(parameterset__dataset_file__in=df_ids, name__in=name_ids).values('parameterset__dataset_file__id', 'name__id', 'numerical_value', 'datetime_value', 'string_value')
+    for dfp in dfps:
+        f_id = dfp['parameterset__dataset_file__id']
+        n_id = dfp['name__id']
+        if f_id not in params_by_file:
+            params_by_file[f_id] = {}
+
+        dfps_by_name = params_by_file[f_id]
+
+        if n_id not in dfps_by_name:
+            dfps_by_name[n_id] = []
+
+        dfp_vals = {'datetime_value': dfp['datetime_value'], 'numerical_value': dfp['numerical_value'], 'string_value': dfp['string_value'] }
+        dfps_by_name[n_id].append(dfp)
+    return params_by_file
+
 
 def _filter(datafile_queryset, filter):
     if len(filter) < 1:
