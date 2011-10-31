@@ -138,13 +138,14 @@ def _params_by_file(df_ids, parameter_names):
     name_ids = [pn.id for pn in parameter_names]
     params_by_file = {}
     dfps = DatafileParameter.objects.filter(parameterset__dataset_file__in=df_ids, name__in=name_ids).values('parameterset__dataset_file__id', 'name__id', 'numerical_value', 'datetime_value', 'string_value')
-    for dfp in dfps:
-        f_id = dfp['parameterset__dataset_file__id']
-        n_id = dfp['name__id']
-        if f_id not in params_by_file:
-            params_by_file[f_id] = {}
 
-        dfps_by_name = params_by_file[f_id]
+    for df_id in df_ids:
+        params_by_file[df_id] = {}
+    for dfp in dfps:
+        df_id = dfp['parameterset__dataset_file__id']
+        n_id = dfp['name__id']
+
+        dfps_by_name = params_by_file[df_id]
 
         if n_id not in dfps_by_name:
             dfps_by_name[n_id] = []
