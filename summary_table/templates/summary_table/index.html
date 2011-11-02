@@ -17,6 +17,9 @@ th {
     float:left;
 }
 
+.dataTables_processing {
+    float:left;
+}
 #summary_table tr.odd {
     background-color: #E0E3E6;
 }
@@ -86,14 +89,6 @@ $('#summary_table').dataTable({
     sScrollX: "100%",
     //"sScrollXInner": "110%",
     bScrollCollapse: true,
-    oTableTools: {
-        aButtons: [{
-            sExtends: 'collection',
-            sButtonText: 'save',
-            aButtons: ['copy', 'csv', 'pdf']
-        }],
-        sSwfPath: "http://datatables.net/release-datatables/extras/TableTools/media/swf/copy_cvs_xls_pdf.swf"
-    },
     oLanguage: {
         sLengthMenu: 'Display <select>'+
             '<option value="10">10</option>'+
@@ -107,6 +102,6 @@ $('#summary_table').dataTable({
     bServerSide: true,
     sAjaxSource: '{% url tardis.apps.summary_table.views.table experiment.id %}',
     sPaginationType: 'full_numbers',
-    sDom: 'R<"H"TCrfl>t<"F"ip>'
+    sDom: '<"H"TCrfl>t<"F"ip>'
 });
 </script>
