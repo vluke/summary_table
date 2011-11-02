@@ -36,6 +36,12 @@ th {
     float: right;
     margin-right: 20px;
 }
+.ColVis_collection span {
+    float: left;
+}
+html body div.ColVis_collection button.ColVis_Button {
+    float: left;
+}
 </style>
 {% if show_popout_link %}
     <a href="{% url tardis.apps.summary_table.views.full_page experiment.id %}" target="_blank">Pop out table </a>
