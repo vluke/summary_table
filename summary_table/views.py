@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import csv
+
 from django.db.models import Q
 from django.http import HttpResponse
 from django.template import Context
@@ -163,3 +165,41 @@ def _filter(datafile_queryset, filter):
         query |= Q(datafileparameterset__datafileparameter__string_value__icontains=filter)
         query |= Q(datafileparameterset__datafileparameter__numerical_value__icontains=filter)
         return datafile_queryset.filter(query).distinct()
+
+@authz.experiment_access_required
+def csv_export(request, experiment_id):
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="exported_%s.csv"' % experiment_id
+
+    parameter_names = ParameterName.objects.filter(datafileparameter__parameterset__dataset_file__dataset__experiment=experiment_id).distinct()[:]
+    datafiles = Dataset_File.objects.filter(dataset__experiment=experiment_id)[:]
+    datafile_ids = [df.id for df in datafiles]
+
+    params_by_file = _params_by_file(datafile_ids, parameter_names)
+
+    writer = csv.writer(response)
+    header_row = ['filename'] + [pn.name for pn in parameter_names]
+    writer.writerow(header_row)
+    for datafile in datafiles:
+        row = []
+        params = params_by_file[datafile.id]
+
+        row.append(datafile.filename)
+        for parameter_name in parameter_names:
+            if parameter_name.id in params:
+                specific_params = params[parameter_name.id]
+                if pn.isString() or pn.isLongString():
+                    vals = [param['string_value'] for param in specific_params]
+                elif pn.isNumeric():
+                    vals = [str(param['numerical_value']) for param in specific_params]
+                elif pn.isDateTime():
+                    vals = [str(param['datetime_value']) for param in specific_params]
+                else:
+                    vals = []
+                row.append(','.join(vals))
+            else:
+                row.append('')
+
+        writer.writerow(row)
+
+    return response

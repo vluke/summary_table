@@ -46,6 +46,7 @@ html body div.ColVis_collection button.ColVis_Button {
 {% if show_popout_link %}
     <a href="{% url tardis.apps.summary_table.views.full_page experiment.id %}" target="_blank">Pop out table </a>
 {% endif %}
+<a href="{% url tardis.apps.summary_table.views.csv_export experiment.id %}">Download CSV</a>
 <table id="summary_table" style="border-collapse: collapse; border-spacing: 5px;">
     <thead>
     </thead>
