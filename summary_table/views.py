@@ -171,8 +171,8 @@ def csv_export(request, experiment_id):
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename="exported_%s.csv"' % experiment_id
 
-    parameter_names = ParameterName.objects.filter(datafileparameter__parameterset__dataset_file__dataset__experiment=experiment_id).distinct()[:]
-    datafiles = Dataset_File.objects.filter(dataset__experiment=experiment_id)[:]
+    parameter_names = list(ParameterName.objects.filter(datafileparameter__parameterset__dataset_file__dataset__experiment=experiment_id).distinct())
+    datafiles = list(Dataset_File.objects.filter(dataset__experiment=experiment_id))
     datafile_ids = [df.id for df in datafiles]
 
     params_by_file = _params_by_file(datafile_ids, parameter_names)
@@ -188,11 +188,11 @@ def csv_export(request, experiment_id):
         for parameter_name in parameter_names:
             if parameter_name.id in params:
                 specific_params = params[parameter_name.id]
-                if pn.isString() or pn.isLongString():
-                    vals = [param['string_value'] for param in specific_params]
-                elif pn.isNumeric():
+                if parameter_name.isString() or pn.isLongString():
+                    vals = [str(param['string_value']) for param in specific_params]
+                elif parameter_name.isNumeric():
                     vals = [str(param['numerical_value']) for param in specific_params]
-                elif pn.isDateTime():
+                elif parameter_name.isDateTime():
                     vals = [str(param['datetime_value']) for param in specific_params]
                 else:
                     vals = []
