@@ -104,4 +104,25 @@ $('#summary_table').dataTable({
     sPaginationType: 'full_numbers',
     sDom: '<"H"TCrfl>t<"F"ip>'
 });
+
+/*
+    The following is a dirty hack to fix a bug.
+
+    In IE, the overlay when displaying the show/hide checkboxes does not correctly overlay everything.
+    This means that it is possible to switch tabs without hiding the show/hide checkboxes.
+
+    These orphaned checkboxes then remain until a new page is loaded.
+
+    The proper solution is to determine why the overlay isn't showing up correctly.
+ */
+var summary_table_tab_index = $('#tabs').tabs('option', 'selected');
+$('#tabs').unbind('tabsselect.summary_table');
+$('#tabs').bind('tabsselect.summary_table', function(evt, ui) {
+    var current_tab_index = $(this).tabs('option', 'selected');
+    if (current_tab_index == summary_table_tab_index) {
+        ColVis.aInstances[0]['_fnCollectionHide']();
+        ColVis.aInstances = [];
+    }
+});
+// END DIRTY HACK
 </script>
